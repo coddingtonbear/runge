@@ -1,2 +1,7 @@
 *.kicad_pcb-bak
 *.sch-bak
+*.gbr
+*.gcode
+*.drl
+*.FlatScript
+*.gbrjob
