@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name MCP23018-E_SS)(type Legacy)(uri /home/acoddington/Documents/Projects/kicad_footprints/coddingtonbear/coddingtonbear-kicad-lib/MCP23018-E_SS.lib)(options "")(descr ""))
+)
