@@ -58,11 +58,11 @@ F 3 "" H 1850 3850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	2500 3550 1850 3550
+	2500 3550 2450 3550
 Wire Wire Line
 	1850 3550 1850 3500
 Wire Wire Line
-	2500 3850 1850 3850
+	2500 3850 2450 3850
 $Comp
 L power:GND #PWR0103
 U 1 1 6028ECF3
@@ -255,12 +255,21 @@ I2C: 0x20
 $Comp
 L Connector_Generic:Conn_02x04_Odd_Even J1
 U 1 1 602D01C9
-P 2700 3650
-F 0 "J1" H 2750 3967 50  0000 C CNN
-F 1 "Board Connector" H 2750 3876 50  0000 C CNN
-F 2 "Connector_IDC:IDC-Header_2x04_P2.54mm_Vertical" H 2700 3650 50  0001 C CNN
-F 3 "~" H 2700 3650 50  0001 C CNN
-	1    2700 3650
-	1    0    0    -1  
+P 2700 3750
+F 0 "J1" H 2750 4067 50  0000 C CNN
+F 1 "Board Connector" H 2750 3976 50  0000 C CNN
+F 2 "Connector_IDC:IDC-Header_2x04_P2.54mm_Vertical" H 2700 3750 50  0001 C CNN
+F 3 "~" H 2700 3750 50  0001 C CNN
+	1    2700 3750
+	1    0    0    1   
 $EndComp
+Connection ~ 2400 3550
+Wire Wire Line
+	2400 3550 1850 3550
+Connection ~ 2450 3850
+Wire Wire Line
+	2450 3850 1850 3850
+Connection ~ 2450 3550
+Wire Wire Line
+	2450 3550 2400 3550
 $EndSCHEMATC
