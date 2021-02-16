@@ -6,8 +6,6 @@
 #include <Bounce2mcp.h>
 #include <avr/wdt.h>
 
-#define INTERFACE_INTERRUPT_PIN 2
-
 #define INTERFACE_ROTARY_SIG 8
 #define INTERFACE_ROTARY_GND 9
 #define INTERFACE_ROTARY_SIG_DIR 10
@@ -42,19 +40,14 @@ uint8_t gramsSelected = 13;
 float currentWeight = 0;
 
 unsigned long sleepTimeout = 0;
+unsigned long lastMessage = 0;
 
 bool rotateLeft = false;
 bool rotateRight = false;
 bool buttonFell = false;
 String messageDisplay = "";
 
-volatile boolean interrupted = false;
 volatile uint16_t messageCount = 0;
-
-void interfaceInterruptHandler() {
-  interrupted = true;
-  EIFR = 0x01;
-}
 
 void setup() {
   Serial.begin(9600);
@@ -62,53 +55,40 @@ void setup() {
 
   wdt_enable(WDTO_4S);
 
-  pinMode(INTERFACE_INTERRUPT_PIN, INPUT);
-
   messageDisplay.reserve(32);
 
   interface.begin();
-  interface.readINTCAPAB(); // Just to clear interrupts
-  interface.setupInterrupts(true, false, LOW);
 
   interface.pinMode(INTERFACE_ROTARY_SIG, INPUT);
   interface.pullUp(INTERFACE_ROTARY_SIG, HIGH);
-  interface.setupInterruptPin(INTERFACE_ROTARY_SIG, CHANGE);
 
   interface.pinMode(INTERFACE_ROTARY_GND, OUTPUT);
   interface.digitalWrite(INTERFACE_ROTARY_GND, LOW);
 
   interface.pinMode(INTERFACE_ROTARY_SIG_DIR, INPUT);
   interface.pullUp(INTERFACE_ROTARY_SIG_DIR, HIGH);
-  interface.setupInterruptPin(INTERFACE_ROTARY_SIG_DIR, CHANGE);
 
   interface.pinMode(INTERFACE_BUTTON_GND, OUTPUT);
   interface.digitalWrite(INTERFACE_BUTTON_GND, LOW);
 
   interface.pinMode(INTERFACE_BUTTON_SIG, INPUT);
   interface.pullUp(INTERFACE_BUTTON_SIG, HIGH);
-  interface.setupInterruptPin(INTERFACE_BUTTON_SIG, CHANGE);
 
   displayCtl.begin();
-
-  attachInterrupt(digitalPinToInterrupt(INTERFACE_INTERRUPT_PIN), interfaceInterruptHandler, FALLING);
 
   scale.begin(LOAD_CELL_DT, LOAD_CELL_SCK);
   scale.tare();
 }
 
-void handleInterfaceInterrupt() {
-  detachInterrupt(digitalPinToInterrupt(INTERFACE_INTERRUPT_PIN));
+void handleInterface() {
+  uint16_t interfaceStatus = interface.readGPIOAB();
 
-  uint16_t interfaceStatus = interface.readINTCAPAB();
+  //uint16_t interfaceStatus = interface.readINTCAPAB();
 
   uint8_t buttonState = bitRead(interfaceStatus, INTERFACE_BUTTON_SIG);
   uint8_t sig = bitRead(interfaceStatus, INTERFACE_ROTARY_SIG);
   uint8_t sig_dir = bitRead(interfaceStatus, INTERFACE_ROTARY_SIG_DIR);
   uint8_t event = rotary.process(sig, sig_dir);
-
-  Serial.println("Interrupt condition");
-  Serial.print("INTCAPAB: ");
-  Serial.println(interfaceStatus, BIN);
 
   button.update(buttonState);
 
@@ -120,16 +100,6 @@ void handleInterfaceInterrupt() {
   if (button.fell()) {
     buttonFell = true;
   }
-
-  Serial.print("Button: ");
-  Serial.println(buttonFell);
-  Serial.print("Rotate Right: ");
-  Serial.println(rotateRight);
-  Serial.print("Rotate Left: ");
-  Serial.println(rotateLeft);
-
-  interrupted = false;
-  attachInterrupt(digitalPinToInterrupt(INTERFACE_INTERRUPT_PIN), interfaceInterruptHandler, FALLING);
 }
 
 void setGrinderState(bool enabled) {
@@ -149,19 +119,13 @@ void setState(uint8_t _state) {
 void loop() {
   wdt_reset();
 
-  if (digitalRead(INTERFACE_INTERRUPT_PIN) == LOW) {
-    interface.readGPIOAB();
-  }
-
   messageDisplay = "";
 
   rotateLeft = false;
   rotateRight = false;
   buttonFell = false;
 
-  if(interrupted) {
-    handleInterfaceInterrupt();
-  }
+  handleInterface();
 
   if(buttonFell || rotateLeft || rotateRight) {
     updateSleepTimeout();
@@ -171,7 +135,7 @@ void loop() {
     setState(STATE_SLEEP);
   }
   if (state == STATE_SLEEP) {
-    if (buttonFell) {
+    if (buttonFell || rotateLeft || rotateRight) {
       setState(STATE_GRAMS);
     }
   } else if (state == STATE_GRAMS) {
@@ -230,9 +194,13 @@ void loop() {
 
   setGrinderState(state == STATE_GRINDING);
 
-  displayCtl.firstPage();
-  do {
-    displayCtl.setFont(u8g2_font_logisoso28_tf);
-    displayCtl.drawStr(0, 28, messageDisplay.c_str());
-  } while(displayCtl.nextPage());
+  if((lastMessage + MESSAGE_INTERVAL) < millis()) {
+    displayCtl.firstPage();
+    do {
+      displayCtl.setFont(u8g2_font_logisoso28_tf);
+      displayCtl.drawStr(0, 28, messageDisplay.c_str());
+    } while(displayCtl.nextPage());
+    
+    lastMessage = millis();
+  }
 }
