@@ -40,11 +40,11 @@ uint8_t gramsSelected = 13;
 float currentWeight = 0;
 
 unsigned long sleepTimeout = 0;
-unsigned long lastMessage = 0;
 
 bool rotateLeft = false;
 bool rotateRight = false;
 bool buttonFell = false;
+String lastMessageDisplay = "";
 String messageDisplay = "";
 
 volatile uint16_t messageCount = 0;
@@ -55,6 +55,7 @@ void setup() {
 
   wdt_enable(WDTO_4S);
 
+  lastMessageDisplay.reserve(32);
   messageDisplay.reserve(32);
 
   interface.begin();
@@ -182,7 +183,7 @@ void loop() {
   } else if (state == STATE_DONE) {
     messageDisplay = "Ready";
 
-    if(buttonFell) {
+    if(buttonFell || rotateLeft || rotateRight) {
       setState(STATE_GRAMS);
     }
   } else {
@@ -194,13 +195,13 @@ void loop() {
 
   setGrinderState(state == STATE_GRINDING);
 
-  if((lastMessage + MESSAGE_INTERVAL) < millis()) {
+  if(lastMessageDisplay != messageDisplay) {
     displayCtl.firstPage();
     do {
       displayCtl.setFont(u8g2_font_logisoso28_tf);
       displayCtl.drawStr(0, 28, messageDisplay.c_str());
     } while(displayCtl.nextPage());
     
-    lastMessage = millis();
+    lastMessageDisplay = messageDisplay;
   }
 }
