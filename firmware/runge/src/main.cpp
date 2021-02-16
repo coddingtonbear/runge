@@ -4,6 +4,7 @@
 #include <Adafruit_MCP23017.h>
 #include <Rotary.h>
 #include <Bounce2mcp.h>
+#include <avr/wdt.h>
 
 #define INTERFACE_INTERRUPT_PIN 2
 
@@ -45,8 +46,7 @@ unsigned long sleepTimeout = 0;
 bool rotateLeft = false;
 bool rotateRight = false;
 bool buttonFell = false;
-String messageMain = "";
-String messageSecondary = "";
+String messageDisplay = "";
 
 volatile boolean interrupted = false;
 volatile uint16_t messageCount = 0;
@@ -57,10 +57,14 @@ void interfaceInterruptHandler() {
 }
 
 void setup() {
+  Serial.begin(9600);
+  Serial.println("[Runge (2020-02-16)]");
+
+  wdt_enable(WDTO_4S);
+
   pinMode(INTERFACE_INTERRUPT_PIN, INPUT);
 
-  messageMain.reserve(32);
-  messageSecondary.reserve(32);
+  messageDisplay.reserve(32);
 
   interface.begin();
   interface.readINTCAPAB(); // Just to clear interrupts
@@ -97,15 +101,16 @@ void handleInterfaceInterrupt() {
 
   uint16_t interfaceStatus = interface.readINTCAPAB();
 
-  String message;
-
-  displayCtl.firstPage();
-  displayCtl.setFont(u8g2_font_logisoso32_tf);
-
-  button.update(bitRead(interfaceStatus, INTERFACE_BUTTON_SIG));
+  uint8_t buttonState = bitRead(interfaceStatus, INTERFACE_BUTTON_SIG);
   uint8_t sig = bitRead(interfaceStatus, INTERFACE_ROTARY_SIG);
   uint8_t sig_dir = bitRead(interfaceStatus, INTERFACE_ROTARY_SIG_DIR);
   uint8_t event = rotary.process(sig, sig_dir);
+
+  Serial.println("Interrupt condition");
+  Serial.print("INTCAPAB: ");
+  Serial.println(interfaceStatus, BIN);
+
+  button.update(buttonState);
 
   if (event == DIR_CW) {
     rotateRight = true;
@@ -116,25 +121,39 @@ void handleInterfaceInterrupt() {
     buttonFell = true;
   }
 
+  Serial.print("Button: ");
+  Serial.println(buttonFell);
+  Serial.print("Rotate Right: ");
+  Serial.println(rotateRight);
+  Serial.print("Rotate Left: ");
+  Serial.println(rotateLeft);
+
   interrupted = false;
   attachInterrupt(digitalPinToInterrupt(INTERFACE_INTERRUPT_PIN), interfaceInterruptHandler, FALLING);
 }
 
-void enableGrinder() {
-  digitalWrite(GRINDER_SIG, HIGH);
-}
-
-void disableGrinder() {
-  digitalWrite(GRINDER_SIG, LOW);
+void setGrinderState(bool enabled) {
+  digitalWrite(GRINDER_SIG, !enabled);
 }
 
 void updateSleepTimeout(uint8_t seconds = 15) {
   sleepTimeout = millis() + (seconds * 1000);
 }
 
+void setState(uint8_t _state) {
+  Serial.print("State Change: ");
+  Serial.println(_state);
+  state = _state;
+}
+
 void loop() {
-  messageMain = "";
-  messageSecondary = "";
+  wdt_reset();
+
+  if (digitalRead(INTERFACE_INTERRUPT_PIN) == LOW) {
+    interface.readGPIOAB();
+  }
+
+  messageDisplay = "";
 
   rotateLeft = false;
   rotateRight = false;
@@ -148,19 +167,14 @@ void loop() {
     updateSleepTimeout();
   }
 
-  if (millis() > sleepTimeout) {
-    state = STATE_SLEEP;
+  if (millis() > sleepTimeout && state != STATE_SLEEP) {
+    setState(STATE_SLEEP);
   }
-
   if (state == STATE_SLEEP) {
-    disableGrinder();
     if (buttonFell) {
-      state = STATE_GRAMS;
+      setState(STATE_GRAMS);
     }
   } else if (state == STATE_GRAMS) {
-    messageMain = "Desired weight:";
-
-    disableGrinder();
     if (rotateRight) {
       gramsSelected++;
     } else if (rotateLeft) {
@@ -174,53 +188,51 @@ void loop() {
     }
 
     if (buttonFell) {
-      state = STATE_PRE_CALIBRATE;
+      setState(STATE_PRE_CALIBRATE);
     } 
 
-    messageSecondary = String(gramsSelected) + "g";
+    messageDisplay = String(gramsSelected) + "g";
   } else if (state == STATE_PRE_CALIBRATE) {
     updateSleepTimeout();
-    disableGrinder();
-    messageMain = "Calibrating...";
-    state = STATE_CALIBRATE;
+    messageDisplay = "...";
+    setState(STATE_CALIBRATE);
   } else if (state == STATE_CALIBRATE) {
     updateSleepTimeout();
-    disableGrinder();
     scale.callibrate_scale(PORTAFILTER_WEIGHT, 10);
     scale.tare();
-    state = STATE_GRINDING;
-    messageMain = "Calibration complete.";
+    setState(STATE_GRINDING);
+    messageDisplay = ".";
   } else if (state == STATE_GRINDING) {
     updateSleepTimeout();
-    enableGrinder();
     if(buttonFell) {
-      state = STATE_GRAMS;
+      setState(STATE_GRAMS);
     }
 
     currentWeight = scale.get_units(5);
 
-    messageMain = "Grinding...";
-    messageSecondary = String(round(currentWeight)) + "/" + String(gramsSelected);
+    messageDisplay = String(round(currentWeight)) + "/" + String(gramsSelected);
 
     if (currentWeight > gramsSelected) {
-      state = STATE_DONE;
+      setState(STATE_DONE);
     }
   } else if (state == STATE_DONE) {
-    messageMain = "Grind complete.";
+    messageDisplay = "Ready";
 
     if(buttonFell) {
-      state = STATE_GRAMS;
+      setState(STATE_GRAMS);
     }
   } else {
     // Unexpected state
-    disableGrinder();
-    state = STATE_GRAMS;
+    Serial.print("Unexpected state: ");
+    Serial.println(state);
+    setState(STATE_GRAMS);
   }
+
+  setGrinderState(state == STATE_GRINDING);
 
   displayCtl.firstPage();
   do {
-    displayCtl.setFont(u8g2_font_logisoso16_tf);
-    displayCtl.drawStr(0, 16, messageMain.c_str());
-    displayCtl.drawStr(0, 32, messageSecondary.c_str());
+    displayCtl.setFont(u8g2_font_logisoso28_tf);
+    displayCtl.drawStr(0, 28, messageDisplay.c_str());
   } while(displayCtl.nextPage());
 }
