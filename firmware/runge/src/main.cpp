@@ -148,8 +148,8 @@ void loop() {
 
     if (gramsSelected < 1) {
       gramsSelected = 1;
-    } else if (gramsSelected > 20) {
-      gramsSelected = 20;
+    } else if (gramsSelected > 100) {
+      gramsSelected = 100;
     }
 
     if (buttonFell) {
