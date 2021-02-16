@@ -166,7 +166,6 @@ void loop() {
     scale.callibrate_scale(PORTAFILTER_WEIGHT, 10);
     scale.tare();
     setState(STATE_GRINDING);
-    messageDisplay = ".";
   } else if (state == STATE_GRINDING) {
     updateSleepTimeout();
     if(buttonFell) {
