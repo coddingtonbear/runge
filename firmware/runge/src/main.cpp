@@ -45,7 +45,8 @@ unsigned long sleepTimeout = 0;
 bool rotateLeft = false;
 bool rotateRight = false;
 bool buttonFell = false;
-String message = "";
+String messageMain = "";
+String messageSecondary = "";
 
 volatile boolean interrupted = false;
 volatile uint16_t messageCount = 0;
@@ -58,7 +59,8 @@ void interfaceInterruptHandler() {
 void setup() {
   pinMode(INTERFACE_INTERRUPT_PIN, INPUT);
 
-  message.reserve(32);
+  messageMain.reserve(32);
+  messageSecondary.reserve(32);
 
   interface.begin();
   interface.readINTCAPAB(); // Just to clear interrupts
@@ -91,9 +93,6 @@ void setup() {
 }
 
 void handleInterfaceInterrupt() {
-  rotateLeft = false;
-  rotateRight = false;
-
   detachInterrupt(digitalPinToInterrupt(INTERFACE_INTERRUPT_PIN));
 
   uint16_t interfaceStatus = interface.readINTCAPAB();
@@ -134,36 +133,37 @@ void updateSleepTimeout(uint8_t seconds = 15) {
 }
 
 void loop() {
-  message = "";
+  messageMain = "";
+  messageSecondary = "";
 
-  if(digitalRead(INTERFACE_INTERRUPT_PIN) == LOW) {
-    interface.digitalRead(0);
-    interface.digitalRead(8);
-  }
-
+  rotateLeft = false;
+  rotateRight = false;
+  buttonFell = false;
 
   if(interrupted) {
     handleInterfaceInterrupt();
   }
 
-  /*if (millis() > sleepTimeout) {
+  if(buttonFell || rotateLeft || rotateRight) {
+    updateSleepTimeout();
+  }
+
+  if (millis() > sleepTimeout) {
     state = STATE_SLEEP;
-    message = "SLEEP";
-  } else */
+  }
 
   if (state == STATE_SLEEP) {
     disableGrinder();
     if (buttonFell) {
-      updateSleepTimeout();
       state = STATE_GRAMS;
     }
   } else if (state == STATE_GRAMS) {
+    messageMain = "Desired weight:";
+
     disableGrinder();
     if (rotateRight) {
-      updateSleepTimeout();
       gramsSelected++;
-    } else if (rotateRight) {
-      updateSleepTimeout();
+    } else if (rotateLeft) {
       gramsSelected--;
     }
 
@@ -177,11 +177,11 @@ void loop() {
       state = STATE_PRE_CALIBRATE;
     } 
 
-    message = String(gramsSelected) + "g";
+    messageSecondary = String(gramsSelected) + "g";
   } else if (state == STATE_PRE_CALIBRATE) {
     updateSleepTimeout();
     disableGrinder();
-    message = "Cal...";
+    messageMain = "Calibrating...";
     state = STATE_CALIBRATE;
   } else if (state == STATE_CALIBRATE) {
     updateSleepTimeout();
@@ -189,8 +189,9 @@ void loop() {
     scale.callibrate_scale(PORTAFILTER_WEIGHT, 10);
     scale.tare();
     state = STATE_GRINDING;
-    message = "Cal.";
+    messageMain = "Calibration complete.";
   } else if (state == STATE_GRINDING) {
+    updateSleepTimeout();
     enableGrinder();
     if(buttonFell) {
       state = STATE_GRAMS;
@@ -198,14 +199,14 @@ void loop() {
 
     currentWeight = scale.get_units(5);
 
-    message = String(round(currentWeight)) + "/" + String(gramsSelected);
+    messageMain = "Grinding...";
+    messageSecondary = String(round(currentWeight)) + "/" + String(gramsSelected);
 
     if (currentWeight > gramsSelected) {
-      updateSleepTimeout();
       state = STATE_DONE;
     }
   } else if (state == STATE_DONE) {
-    message = "Ready";
+    messageMain = "Grind complete.";
 
     if(buttonFell) {
       state = STATE_GRAMS;
@@ -216,13 +217,10 @@ void loop() {
     state = STATE_GRAMS;
   }
 
-  if(message.length() == 0) {
-    message = String(state);
-  }
-
   displayCtl.firstPage();
   do {
-    displayCtl.setFont(u8g2_font_logisoso32_tf);
-    displayCtl.drawStr(0, 32, message.c_str());
+    displayCtl.setFont(u8g2_font_logisoso16_tf);
+    displayCtl.drawStr(0, 16, messageMain.c_str());
+    displayCtl.drawStr(0, 32, messageSecondary.c_str());
   } while(displayCtl.nextPage());
 }
