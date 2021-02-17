@@ -265,7 +265,7 @@ U 1 1 602E2B8B
 P 8300 4000
 F 0 "J2" H 8350 4317 50  0000 C CNN
 F 1 "ICSP" H 8350 4226 50  0000 C CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Vertical" H 8300 4000 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 8300 4000 50  0001 C CNN
 F 3 "~" H 8300 4000 50  0001 C CNN
 	1    8300 4000
 	1    0    0    -1  
@@ -342,4 +342,53 @@ F 3 "" H 5100 1000 50  0001 C CNN
 	1    5100 1000
 	1    0    0    -1  
 $EndComp
+$Comp
+L Connector_Generic:Conn_01x04 J4
+U 1 1 602CAF50
+P 6700 4550
+F 0 "J4" H 6618 4125 50  0000 C CNN
+F 1 "Load Cell" H 6618 4216 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 6700 4550 50  0001 C CNN
+F 3 "~" H 6700 4550 50  0001 C CNN
+	1    6700 4550
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR0113
+U 1 1 602CBA09
+P 6100 4400
+F 0 "#PWR0113" H 6100 4150 50  0001 C CNN
+F 1 "GND" H 6105 4227 50  0000 C CNN
+F 2 "" H 6100 4400 50  0001 C CNN
+F 3 "" H 6100 4400 50  0001 C CNN
+	1    6100 4400
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0114
+U 1 1 602CBFDD
+P 6800 4200
+F 0 "#PWR0114" H 6800 4050 50  0001 C CNN
+F 1 "+5V" H 6815 4373 50  0000 C CNN
+F 2 "" H 6800 4200 50  0001 C CNN
+F 3 "" H 6800 4200 50  0001 C CNN
+	1    6800 4200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6800 4350 6800 4200
+Wire Wire Line
+	6100 4400 6100 4250
+Wire Wire Line
+	6100 4250 6500 4250
+Wire Wire Line
+	6500 4250 6500 4350
+Wire Wire Line
+	6600 4350 6600 3600
+Wire Wire Line
+	6600 3600 6000 3600
+Wire Wire Line
+	6000 3700 6700 3700
+Wire Wire Line
+	6700 3700 6700 4350
 $EndSCHEMATC
