@@ -1,0 +1,345 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector_Generic:Conn_02x04_Odd_Even J1
+U 1 1 602C985D
+P 2650 1700
+F 0 "J1" H 2700 1275 50  0000 C CNN
+F 1 "Board Connector" H 2700 1366 50  0000 C CNN
+F 2 "Connector_IDC:IDC-Header_2x04_P2.54mm_Vertical" H 2650 1700 50  0001 C CNN
+F 3 "~" H 2650 1700 50  0001 C CNN
+	1    2650 1700
+	1    0    0    1   
+$EndComp
+$Comp
+L power:GND #PWR0101
+U 1 1 602CA367
+P 2100 1800
+F 0 "#PWR0101" H 2100 1550 50  0001 C CNN
+F 1 "GND" H 2105 1627 50  0000 C CNN
+F 2 "" H 2100 1800 50  0001 C CNN
+F 3 "" H 2100 1800 50  0001 C CNN
+	1    2100 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0102
+U 1 1 602CA7C0
+P 2100 1500
+F 0 "#PWR0102" H 2100 1350 50  0001 C CNN
+F 1 "+5V" H 2115 1673 50  0000 C CNN
+F 2 "" H 2100 1500 50  0001 C CNN
+F 3 "" H 2100 1500 50  0001 C CNN
+	1    2100 1500
+	1    0    0    -1  
+$EndComp
+Text GLabel 2450 1600 0    50   BiDi ~ 0
+SDA
+Text GLabel 2450 1700 0    50   BiDi ~ 0
+SCL
+Text GLabel 2950 1800 2    50   Output ~ 0
+INT
+$Comp
+L MCU_Microchip_ATmega:ATmega328PB-AU U1
+U 1 1 602CC02B
+P 5400 2600
+F 0 "U1" H 5400 1011 50  0000 C CNN
+F 1 "ATmega328PB-AU" H 5400 920 50  0000 C CNN
+F 2 "Package_QFP:TQFP-32_7x7mm_P0.8mm" H 5400 2600 50  0001 C CIN
+F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/40001906C.pdf" H 5400 2600 50  0001 C CNN
+	1    5400 2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0103
+U 1 1 602CFCA1
+P 5400 750
+F 0 "#PWR0103" H 5400 600 50  0001 C CNN
+F 1 "+5V" H 5415 923 50  0000 C CNN
+F 2 "" H 5400 750 50  0001 C CNN
+F 3 "" H 5400 750 50  0001 C CNN
+	1    5400 750 
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0104
+U 1 1 602D01C4
+P 5900 1050
+F 0 "#PWR0104" H 5900 800 50  0001 C CNN
+F 1 "GND" H 5905 877 50  0000 C CNN
+F 2 "" H 5900 1050 50  0001 C CNN
+F 3 "" H 5900 1050 50  0001 C CNN
+	1    5900 1050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C_Small C1
+U 1 1 602D423B
+P 5650 900
+F 0 "C1" H 5742 946 50  0000 L CNN
+F 1 "0.1u" H 5742 855 50  0000 L CNN
+F 2 "coddingtonbear:0805_Milling" H 5650 900 50  0001 C CNN
+F 3 "~" H 5650 900 50  0001 C CNN
+	1    5650 900 
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0105
+U 1 1 602D4541
+P 5400 4400
+F 0 "#PWR0105" H 5400 4150 50  0001 C CNN
+F 1 "GND" H 5405 4227 50  0000 C CNN
+F 2 "" H 5400 4400 50  0001 C CNN
+F 3 "" H 5400 4400 50  0001 C CNN
+	1    5400 4400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5500 1100 5400 1100
+Wire Wire Line
+	5400 1100 5400 800 
+Connection ~ 5400 1100
+Wire Wire Line
+	5650 800  5400 800 
+Connection ~ 5400 800 
+Wire Wire Line
+	5400 800  5400 750 
+Wire Wire Line
+	5650 1000 5900 1000
+Wire Wire Line
+	5900 1000 5900 1050
+Wire Wire Line
+	5400 4400 5400 4100
+Wire Wire Line
+	2450 1500 2100 1500
+Wire Wire Line
+	2100 1800 2450 1800
+Text GLabel 2950 1500 2    50   Input ~ 0
+TXD
+Text GLabel 2950 1600 2    50   Output ~ 0
+RXD
+Text GLabel 2950 1700 2    50   Output ~ 0
+DTR
+Text GLabel 7200 2900 2    50   Input ~ 0
+DTR
+Text GLabel 6000 3200 2    50   Output ~ 0
+TXD
+Text GLabel 6000 3100 2    50   Input ~ 0
+RXD
+$Comp
+L Device:C_Small C2
+U 1 1 602D84D7
+P 7000 2900
+F 0 "C2" V 6771 2900 50  0000 C CNN
+F 1 "0.1u" V 6862 2900 50  0000 C CNN
+F 2 "coddingtonbear:0805_Milling" H 7000 2900 50  0001 C CNN
+F 3 "~" H 7000 2900 50  0001 C CNN
+	1    7000 2900
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R_Small R1
+U 1 1 602DB638
+P 6650 2800
+F 0 "R1" H 6709 2846 50  0000 L CNN
+F 1 "10k" H 6709 2755 50  0000 L CNN
+F 2 "coddingtonbear:0805_Milling" H 6650 2800 50  0001 C CNN
+F 3 "~" H 6650 2800 50  0001 C CNN
+	1    6650 2800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0106
+U 1 1 602DB9F1
+P 6650 2600
+F 0 "#PWR0106" H 6650 2450 50  0001 C CNN
+F 1 "+5V" H 6665 2773 50  0000 C CNN
+F 2 "" H 6650 2600 50  0001 C CNN
+F 3 "" H 6650 2600 50  0001 C CNN
+	1    6650 2600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7100 2900 7200 2900
+Wire Wire Line
+	6900 2900 6650 2900
+Wire Wire Line
+	6650 2900 6000 2900
+Connection ~ 6650 2900
+Wire Wire Line
+	6650 2700 6650 2600
+Text GLabel 6000 2800 2    50   BiDi ~ 0
+SCL
+Text GLabel 6000 2700 2    50   BiDi ~ 0
+SDA
+Text GLabel 6000 2600 2    50   Input ~ 0
+INT
+$Comp
+L Connector_Generic:Conn_01x03 J3
+U 1 1 602DD5D0
+P 8550 1150
+F 0 "J3" V 8514 962 50  0000 R CNN
+F 1 "Power and Grinder" V 8423 962 50  0000 R CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 8550 1150 50  0001 C CNN
+F 3 "~" H 8550 1150 50  0001 C CNN
+	1    8550 1150
+	0    -1   -1   0   
+$EndComp
+Text GLabel 6000 1400 2    50   Output ~ 0
+GRINDER
+Text GLabel 8050 1350 0    50   Input ~ 0
+GRINDER
+$Comp
+L Device:R_Small R2
+U 1 1 602DF22D
+P 8150 1250
+F 0 "R2" H 8209 1296 50  0000 L CNN
+F 1 "10k" H 8209 1205 50  0000 L CNN
+F 2 "coddingtonbear:0805_Milling" H 8150 1250 50  0001 C CNN
+F 3 "~" H 8150 1250 50  0001 C CNN
+	1    8150 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0107
+U 1 1 602DF664
+P 8150 1050
+F 0 "#PWR0107" H 8150 900 50  0001 C CNN
+F 1 "+5V" H 8165 1223 50  0000 C CNN
+F 2 "" H 8150 1050 50  0001 C CNN
+F 3 "" H 8150 1050 50  0001 C CNN
+	1    8150 1050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8450 1350 8150 1350
+Wire Wire Line
+	8150 1350 8050 1350
+Connection ~ 8150 1350
+Wire Wire Line
+	8150 1150 8150 1050
+$Comp
+L power:+5V #PWR0108
+U 1 1 602E037F
+P 8300 1650
+F 0 "#PWR0108" H 8300 1500 50  0001 C CNN
+F 1 "+5V" H 8315 1823 50  0000 C CNN
+F 2 "" H 8300 1650 50  0001 C CNN
+F 3 "" H 8300 1650 50  0001 C CNN
+	1    8300 1650
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0109
+U 1 1 602E076E
+P 8650 1700
+F 0 "#PWR0109" H 8650 1450 50  0001 C CNN
+F 1 "GND" H 8655 1527 50  0000 C CNN
+F 2 "" H 8650 1700 50  0001 C CNN
+F 3 "" H 8650 1700 50  0001 C CNN
+	1    8650 1700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8650 1700 8650 1350
+Wire Wire Line
+	8550 1350 8550 1650
+Wire Wire Line
+	8550 1650 8300 1650
+$Comp
+L Connector_Generic:Conn_02x03_Odd_Even J2
+U 1 1 602E2B8B
+P 8300 4000
+F 0 "J2" H 8350 4317 50  0000 C CNN
+F 1 "ICSP" H 8350 4226 50  0000 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Vertical" H 8300 4000 50  0001 C CNN
+F 3 "~" H 8300 4000 50  0001 C CNN
+	1    8300 4000
+	1    0    0    -1  
+$EndComp
+Text GLabel 8100 3900 0    50   Output ~ 0
+MISO
+$Comp
+L power:+5V #PWR0110
+U 1 1 602E3C93
+P 8850 3900
+F 0 "#PWR0110" H 8850 3750 50  0001 C CNN
+F 1 "+5V" H 8865 4073 50  0000 C CNN
+F 2 "" H 8850 3900 50  0001 C CNN
+F 3 "" H 8850 3900 50  0001 C CNN
+	1    8850 3900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0111
+U 1 1 602E420F
+P 8850 4150
+F 0 "#PWR0111" H 8850 3900 50  0001 C CNN
+F 1 "GND" H 8855 3977 50  0000 C CNN
+F 2 "" H 8850 4150 50  0001 C CNN
+F 3 "" H 8850 4150 50  0001 C CNN
+	1    8850 4150
+	1    0    0    -1  
+$EndComp
+Text GLabel 8600 4000 2    50   Input ~ 0
+MOSI
+Text GLabel 8100 4000 0    50   Output ~ 0
+SCK
+Text GLabel 8100 4100 0    50   Output ~ 0
+RESET
+Text GLabel 6600 3050 0    50   Input ~ 0
+RESET
+Wire Wire Line
+	6600 3050 6650 3050
+Wire Wire Line
+	6650 3050 6650 2900
+Wire Wire Line
+	8850 3900 8600 3900
+Wire Wire Line
+	8600 4100 8850 4100
+Wire Wire Line
+	8850 4100 8850 4150
+Text GLabel 6000 1800 2    50   Input ~ 0
+MISO
+Text GLabel 6000 1700 2    50   Output ~ 0
+MOSI
+Text GLabel 6000 1900 2    50   Input ~ 0
+SCK
+$Comp
+L Device:C_Small C3
+U 1 1 602F6F2A
+P 5100 900
+F 0 "C3" H 5192 946 50  0000 L CNN
+F 1 "0.1u" H 5192 855 50  0000 L CNN
+F 2 "coddingtonbear:0805_Milling" H 5100 900 50  0001 C CNN
+F 3 "~" H 5100 900 50  0001 C CNN
+	1    5100 900 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5400 800  5100 800 
+$Comp
+L power:GND #PWR0112
+U 1 1 602F7736
+P 5100 1000
+F 0 "#PWR0112" H 5100 750 50  0001 C CNN
+F 1 "GND" H 5105 827 50  0000 C CNN
+F 2 "" H 5100 1000 50  0001 C CNN
+F 3 "" H 5100 1000 50  0001 C CNN
+	1    5100 1000
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
