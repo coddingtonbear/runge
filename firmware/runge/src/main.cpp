@@ -5,6 +5,7 @@
 #include <Rotary.h>
 #include <Bounce2mcp.h>
 #include <avr/wdt.h>
+#include <Atmega328Pins.h>
 
 #define INTERFACE_ROTARY_SIG 8
 #define INTERFACE_ROTARY_GND 9
@@ -13,12 +14,12 @@
 #define INTERFACE_BUTTON_SIG 11
 #define INTERFACE_BUTTON_GND 12
 
-#define GRINDER_SIG 8
+#define GRINDER_SIG PIN_PB0
 
-#define LOAD_CELL_DT 4
-#define LOAD_CELL_SCK 3
+#define LOAD_CELL_DT PIN_PD5
+#define LOAD_CELL_SCK PIN_PD6
 
-#define PORTAFILTER_WEIGHT 145
+#define PORTAFILTER_WEIGHT 171
 
 #define STATE_SLEEP 0
 #define STATE_GRAMS 1
@@ -51,7 +52,10 @@ volatile uint16_t messageCount = 0;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("[Runge (2020-02-16)]");
+  Serial.println("[Runge (2021-03-21)]");
+
+  digitalWrite(GRINDER_SIG, HIGH);
+  pinMode(GRINDER_SIG, OUTPUT);
 
   wdt_enable(WDTO_4S);
 
