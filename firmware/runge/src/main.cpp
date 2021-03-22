@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
-#include <HX711.h>
 #include <Adafruit_MCP23017.h>
 #include <Rotary.h>
 #include <Bounce2mcp.h>
 #include <avr/wdt.h>
 #include <Atmega328Pins.h>
+#include <EEPROM.h>
 
 #define INTERFACE_ROTARY_SIG 8
 #define INTERFACE_ROTARY_GND 9
@@ -16,30 +16,28 @@
 
 #define GRINDER_SIG PIN_PB0
 
-#define LOAD_CELL_DT PIN_PD5
-#define LOAD_CELL_SCK PIN_PD6
-
 #define PORTAFILTER_WEIGHT 171
 
 #define STATE_SLEEP 0
-#define STATE_GRAMS 1
-#define STATE_PRE_CALIBRATE 2
-#define STATE_CALIBRATE 3
-#define STATE_GRINDING 4
-#define STATE_DONE 5
+#define STATE_TIME 1
+#define STATE_GRINDING 2
+#define STATE_DONE 3
 
 #define MESSAGE_INTERVAL 250
 
+#define DEFAULT_SECONDS 10
+
+#define SAVED_SECONDS_LOCATION 20
+
 Adafruit_MCP23017 interface;
 U8G2_SSD1306_128X32_UNIVISION_1_HW_I2C displayCtl(U8G2_R0);
-HX711 scale;
 Rotary rotary;
 BounceMcp button;
 
 uint8_t state = 0;
-uint8_t gramsSelected = 13;
-float currentWeight = 0;
+uint8_t secondsSelected = 0;
 
+unsigned long grinderTimeout = 0;
 unsigned long sleepTimeout = 0;
 
 bool rotateLeft = false;
@@ -80,9 +78,24 @@ void setup() {
   interface.pullUp(INTERFACE_BUTTON_SIG, HIGH);
 
   displayCtl.begin();
+}
 
-  scale.begin(LOAD_CELL_DT, LOAD_CELL_SCK);
-  scale.tare();
+void setSavedSeconds(uint8_t value) {
+  uint8_t saved = EEPROM.read(SAVED_SECONDS_LOCATION);
+  if (saved != value) {
+    EEPROM.write(SAVED_SECONDS_LOCATION, value);
+  }
+}
+
+uint8_t getSavedSeconds() {
+  uint8_t value = EEPROM.read(SAVED_SECONDS_LOCATION);
+
+  if(value == 255) {
+    setSavedSeconds(DEFAULT_SECONDS);
+    return DEFAULT_SECONDS;
+  }
+
+  return value;
 }
 
 void handleInterface() {
@@ -141,59 +154,58 @@ void loop() {
   }
   if (state == STATE_SLEEP) {
     if (buttonFell || rotateLeft || rotateRight) {
-      setState(STATE_GRAMS);
+      setState(STATE_TIME);
     }
-  } else if (state == STATE_GRAMS) {
+  } else if (state == STATE_TIME) {
+    if (secondsSelected == 0) {
+      secondsSelected = getSavedSeconds();
+    }
     if (rotateRight) {
-      gramsSelected++;
+      secondsSelected++;
     } else if (rotateLeft) {
-      gramsSelected--;
+      secondsSelected--;
     }
 
-    if (gramsSelected < 1) {
-      gramsSelected = 1;
-    } else if (gramsSelected > 100) {
-      gramsSelected = 100;
+    if (secondsSelected < 1) {
+      secondsSelected = 1;
+    } else if (secondsSelected > 60) {
+      secondsSelected = 60;
     }
 
     if (buttonFell) {
-      setState(STATE_PRE_CALIBRATE);
+      setSavedSeconds(secondsSelected);
+      setState(STATE_GRINDING);
     } 
 
-    messageDisplay = String(gramsSelected) + "g";
-  } else if (state == STATE_PRE_CALIBRATE) {
-    updateSleepTimeout();
-    messageDisplay = "...";
-    setState(STATE_CALIBRATE);
-  } else if (state == STATE_CALIBRATE) {
-    updateSleepTimeout();
-    scale.callibrate_scale(PORTAFILTER_WEIGHT, 10);
-    scale.tare();
-    setState(STATE_GRINDING);
+    messageDisplay = String(secondsSelected) + "s";
   } else if (state == STATE_GRINDING) {
     updateSleepTimeout();
     if(buttonFell) {
-      setState(STATE_GRAMS);
+      setState(STATE_DONE);
+    }
+    if(grinderTimeout == 0) {
+      grinderTimeout = millis() + (secondsSelected * 1000);
     }
 
-    currentWeight = scale.get_units(5);
+    unsigned long secondsRemaining = grinderTimeout - millis();
 
-    messageDisplay = String(round(currentWeight)) + "/" + String(gramsSelected);
+    messageDisplay = String(round(secondsRemaining / 1000)) + "/" + String(secondsSelected) + "s";
 
-    if (currentWeight > gramsSelected) {
+    if (millis() > grinderTimeout) {
       setState(STATE_DONE);
     }
   } else if (state == STATE_DONE) {
     messageDisplay = "Ready";
+    grinderTimeout = 0;
 
     if(buttonFell || rotateLeft || rotateRight) {
-      setState(STATE_GRAMS);
+      setState(STATE_TIME);
     }
   } else {
     // Unexpected state
     Serial.print("Unexpected state: ");
     Serial.println(state);
-    setState(STATE_GRAMS);
+    setState(STATE_TIME);
   }
 
   setGrinderState(state == STATE_GRINDING);
