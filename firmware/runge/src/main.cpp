@@ -38,6 +38,8 @@ U8G2_SSD1306_128X32_UNIVISION_1_HW_I2C displayCtl(U8G2_R0);
 Rotary rotary;
 BounceMcp button;
 
+uint16_t tempInterface = 0;
+
 uint8_t state = 0;
 uint8_t secondsSelected = 0;
 
@@ -134,6 +136,19 @@ void handleInterface() {
   } else if (event == DIR_CCW) {
     rotateLeft = true;
   }
+
+  if(interfaceStatus != tempInterface) {
+    displayCtl.firstPage();
+    do {
+      displayCtl.setFont(u8g2_font_luRS12_tf);
+      displayCtl.drawStr(0, 14, String(interfaceStatus & 0xff, BIN).c_str());
+      displayCtl.drawStr(0, 32, String(interfaceStatus >> 8, BIN).c_str());
+    } while(displayCtl.nextPage());
+    delay(100);
+  }
+
+  tempInterface = interfaceStatus;
+
   if (button.fell()) {
     buttonFell = true;
   }
@@ -268,6 +283,7 @@ void loop() {
 
   setGrinderState(state == STATE_GRINDING);
 
+  /*
   if(forceDisplay || (lastMessageDisplay != messageDisplay)) {
     displayCtl.firstPage();
     do {
@@ -277,4 +293,5 @@ void loop() {
     
     lastMessageDisplay = messageDisplay;
   }
+  */
 }
