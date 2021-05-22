@@ -217,8 +217,8 @@ void loop() {
 
     if (secondsSelected < 1) {
       secondsSelected = 1;
-    } else if (secondsSelected > 60) {
-      secondsSelected = 60;
+    } else if (secondsSelected > 20) {
+      secondsSelected = 20;
     }
 
     if (buttonFell) {
