@@ -65,6 +65,23 @@ uint8_t Adafruit_MCP23017::regForPin(uint8_t pin, uint8_t portAaddr,
   return (pin < 8) ? portAaddr : portBaddr;
 }
 
+bool Adafruit_MCP23017::ping() {
+  uint8_t result = 0;
+
+  _wire->beginTransmission(MCP23017_ADDRESS | i2caddr);
+  wiresend(MCP23017_GPIOA, _wire);
+  result = _wire->endTransmission();
+
+  if (result == 0) {
+    _wire->requestFrom(MCP23017_ADDRESS | i2caddr, 1);
+    while (_wire->available()) {
+      _wire->read();
+    }
+  }
+
+  return result == 0;
+}
+
 /**
  * Reads a given register
  */

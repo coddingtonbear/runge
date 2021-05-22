@@ -156,7 +156,12 @@ void loop() {
   if (now > sleepTimeout && state != STATE_SLEEP) {
     setState(STATE_SLEEP);
   }
-  if (state == STATE_SLEEP) {
+
+  if (!interface.ping()) {
+    Serial.print("Could not connect to controller!");
+    messageDisplay = "ERR: Ifc";
+    setState(STATE_TIME);
+  } else if (state == STATE_SLEEP) {
     if (buttonFell || rotateLeft || rotateRight) {
       setState(STATE_TIME);
     } else {

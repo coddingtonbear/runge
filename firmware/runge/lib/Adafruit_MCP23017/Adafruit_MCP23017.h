@@ -26,6 +26,7 @@ public:
   void begin(uint8_t addr, TwoWire *theWire = &Wire);
   void begin(TwoWire *theWire = &Wire);
 
+  bool ping();
   void pinMode(uint8_t p, uint8_t d);
   void digitalWrite(uint8_t p, uint8_t d);
   void pullUp(uint8_t p, uint8_t d);
