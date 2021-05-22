@@ -22,8 +22,10 @@
 #define STATE_TIME 1
 #define STATE_GRINDING 2
 #define STATE_DONE 3
+#define STATE_LOCKOUT 4
 
 #define MESSAGE_INTERVAL 250
+#define GRINDER_SAFETY_LOCKOUT 30000
 
 #define DEFAULT_SECONDS 10
 
@@ -41,6 +43,7 @@ unsigned long resetAfterTimeout = (2^32) / 2;
 
 unsigned long grinderTimeout = 0;
 unsigned long sleepTimeout = 0;
+unsigned long grinderStart = 0;
 
 bool rotateLeft = false;
 bool rotateRight = false;
@@ -147,21 +150,39 @@ void loop() {
   rotateRight = false;
   buttonFell = false;
 
+  bool forceDisplay = false;
+
   handleInterface();
 
+  // Sleep cycle handler
   if(buttonFell || rotateLeft || rotateRight) {
     updateSleepTimeout();
-  }
-
-  if (now > sleepTimeout && state != STATE_SLEEP) {
+  } else if (
+    (now > sleepTimeout)
+    && (state != STATE_SLEEP)
+    && (state != STATE_LOCKOUT)
+  ) {
     setState(STATE_SLEEP);
   }
 
+  // Sanity checks
   if (!interface.ping()) {
     Serial.print("Could not connect to controller!");
-    messageDisplay = "ERR: Ifc";
-    setState(STATE_TIME);
-  } else if (state == STATE_SLEEP) {
+    messageDisplay = "ERR: IfcP";
+    setState(STATE_LOCKOUT);
+    forceDisplay = true;
+  } else if (
+    (state == STATE_GRINDING)
+    && ((now - grinderStart) > GRINDER_SAFETY_LOCKOUT)
+  ) {
+    Serial.print("Grinder safety lockout!");
+    messageDisplay = "ERR: GndT";
+    forceDisplay = true;
+    setState(STATE_LOCKOUT);
+  }
+
+  // State handler
+  if (state == STATE_SLEEP) {
     if (buttonFell || rotateLeft || rotateRight) {
       setState(STATE_TIME);
     } else {
@@ -188,9 +209,10 @@ void loop() {
     }
 
     if (buttonFell) {
+      grinderStart = millis();
       setSavedSeconds(secondsSelected);
       setState(STATE_GRINDING);
-    } 
+    }
 
     messageDisplay = String(secondsSelected) + "s";
   } else if (state == STATE_GRINDING) {
@@ -219,6 +241,11 @@ void loop() {
     if(buttonFell || rotateLeft || rotateRight) {
       setState(STATE_TIME);
     }
+  } else if (state == STATE_LOCKOUT) {
+    // To make sure the loop in this case isn't essentially instant,
+    // let's delay a bit.  This'll also allow the screen a chance to
+    // settle before we begin re-rendering it.
+    delay(500);
   } else {
     // Unexpected state
     Serial.print("Unexpected state: ");
@@ -228,7 +255,7 @@ void loop() {
 
   setGrinderState(state == STATE_GRINDING);
 
-  if(lastMessageDisplay != messageDisplay) {
+  if(forceDisplay || (lastMessageDisplay != messageDisplay)) {
     displayCtl.firstPage();
     do {
       displayCtl.setFont(u8g2_font_logisoso28_tf);
