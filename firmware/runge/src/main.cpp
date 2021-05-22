@@ -139,6 +139,7 @@ void setState(uint8_t _state) {
 
 void loop() {
   wdt_reset();
+  unsigned long now = millis();
 
   messageDisplay = "";
 
@@ -152,7 +153,7 @@ void loop() {
     updateSleepTimeout();
   }
 
-  if (millis() > sleepTimeout && state != STATE_SLEEP) {
+  if (now > sleepTimeout && state != STATE_SLEEP) {
     setState(STATE_SLEEP);
   }
   if (state == STATE_SLEEP) {
@@ -161,7 +162,7 @@ void loop() {
     } else {
       // If we've been up for a while, and nothing's going on --
       // let's reset to make sure our values are reset.
-      if (millis() > resetAfterTimeout) {
+      if (now > resetAfterTimeout) {
         resetNow();
       }
     }
@@ -193,14 +194,17 @@ void loop() {
       setState(STATE_DONE);
     }
     if(grinderTimeout == 0) {
-      grinderTimeout = millis() + (secondsSelected * 1000);
+      grinderTimeout = now + (secondsSelected * 1000);
     }
 
-    unsigned long secondsRemaining = grinderTimeout - millis();
+    unsigned long millisRemaining = 0;
+    if (now < grinderTimeout) {
+      millisRemaining = grinderTimeout - now;
+    }
 
-    messageDisplay = String(round(secondsRemaining / 1000) + 1) + "/" + String(secondsSelected) + "s";
+    messageDisplay = String(round(millisRemaining / 1000) + 1) + "/" + String(secondsSelected) + "s";
 
-    if (millis() > grinderTimeout) {
+    if (now > grinderTimeout) {
       setState(STATE_DONE);
     }
   } else if (state == STATE_DONE) {
