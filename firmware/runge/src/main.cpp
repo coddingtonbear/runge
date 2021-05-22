@@ -51,13 +51,14 @@ String messageDisplay = "";
 volatile uint16_t messageCount = 0;
 
 void setup() {
+  wdt_reset();
+  wdt_enable(WDTO_4S);
+
   Serial.begin(9600);
   Serial.println("[Runge (2021-03-21)]");
 
   digitalWrite(GRINDER_SIG, HIGH);
   pinMode(GRINDER_SIG, OUTPUT);
-
-  wdt_enable(WDTO_4S);
 
   lastMessageDisplay.reserve(32);
   messageDisplay.reserve(32);
