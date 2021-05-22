@@ -41,7 +41,7 @@ BounceMcp button;
 uint8_t state = 0;
 uint8_t secondsSelected = 0;
 
-unsigned long resetAfterTimeout = (2^32) / 2;
+unsigned long resetAfterTimeout = (60UL * 60UL * 20UL) * 1000UL;
 
 unsigned long grinderTimeout = 0;
 unsigned long sleepTimeout = 0;
