@@ -198,7 +198,7 @@ void loop() {
 
     unsigned long secondsRemaining = grinderTimeout - millis();
 
-    messageDisplay = String(round(secondsRemaining / 1000)) + "/" + String(secondsSelected) + "s";
+    messageDisplay = String(round(secondsRemaining / 1000) + 1) + "/" + String(secondsSelected) + "s";
 
     if (millis() > grinderTimeout) {
       setState(STATE_DONE);
