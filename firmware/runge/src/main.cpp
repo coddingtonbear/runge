@@ -37,6 +37,8 @@ BounceMcp button;
 uint8_t state = 0;
 uint8_t secondsSelected = 0;
 
+unsigned long resetAfterTimeout = (2^32) / 2;
+
 unsigned long grinderTimeout = 0;
 unsigned long sleepTimeout = 0;
 
@@ -98,10 +100,10 @@ uint8_t getSavedSeconds() {
   return value;
 }
 
+void (*resetNow)(void) = 0;
+
 void handleInterface() {
   uint16_t interfaceStatus = interface.readGPIOAB();
-
-  //uint16_t interfaceStatus = interface.readINTCAPAB();
 
   uint8_t buttonState = bitRead(interfaceStatus, INTERFACE_BUTTON_SIG);
   uint8_t sig = bitRead(interfaceStatus, INTERFACE_ROTARY_SIG);
@@ -155,6 +157,12 @@ void loop() {
   if (state == STATE_SLEEP) {
     if (buttonFell || rotateLeft || rotateRight) {
       setState(STATE_TIME);
+    } else {
+      // If we've been up for a while, and nothing's going on --
+      // let's reset to make sure our values are reset.
+      if (millis() > resetAfterTimeout) {
+        resetNow();
+      }
     }
   } else if (state == STATE_TIME) {
     if (secondsSelected == 0) {
