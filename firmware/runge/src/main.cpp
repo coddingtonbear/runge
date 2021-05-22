@@ -31,6 +31,8 @@
 
 #define SAVED_SECONDS_LOCATION 20
 
+const char version[] = "v2021-05-22";
+
 Adafruit_MCP23017 interface;
 U8G2_SSD1306_128X32_UNIVISION_1_HW_I2C displayCtl(U8G2_R0);
 Rotary rotary;
@@ -57,9 +59,6 @@ void setup() {
   wdt_reset();
   wdt_enable(WDTO_4S);
 
-  Serial.begin(9600);
-  Serial.println("[Runge (2021-03-21)]");
-
   digitalWrite(GRINDER_SIG, HIGH);
   pinMode(GRINDER_SIG, OUTPUT);
 
@@ -83,7 +82,21 @@ void setup() {
   interface.pinMode(INTERFACE_BUTTON_SIG, INPUT);
   interface.pullUp(INTERFACE_BUTTON_SIG, HIGH);
 
+  Serial.begin(9600);
+  Serial.print("[Runge ");
+  Serial.print(version);
+  Serial.println("]");
+
   displayCtl.begin();
+
+  displayCtl.firstPage();
+  do {
+    displayCtl.setFont(u8g2_font_luRS12_tf);
+    displayCtl.drawStr(0, 14, "Runge");
+    displayCtl.drawStr(0, 32, version);
+  } while(displayCtl.nextPage());
+  delay(1000);
+  lastMessageDisplay = "Clear me";
 }
 
 void setSavedSeconds(uint8_t value) {
