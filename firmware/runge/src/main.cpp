@@ -271,7 +271,7 @@ void loop() {
   if(forceDisplay || (lastMessageDisplay != messageDisplay)) {
     displayCtl.firstPage();
     do {
-      displayCtl.setFont(u8g2_font_logisoso28_tf);
+      displayCtl.setFont(u8g2_font_luRS24_tf);
       displayCtl.drawStr(0, 28, messageDisplay.c_str());
     } while(displayCtl.nextPage());
     
